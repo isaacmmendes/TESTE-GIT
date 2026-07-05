@@ -1,0 +1,359 @@
+<title>Trilha concluída — Claude, Claude Code, Cursor & GitHub</title>
+<style>
+  :root {
+    --page-bg: #F6F3EC;
+    --page-fg: #1B1B18;
+    --page-fg-dim: #6B665C;
+    --rule: #DDD6C8;
+    --accent: #D9A441;
+    --accent-soft: rgba(217, 164, 65, 0.16);
+    --success: #3F9463;
+
+    --term-bg: #14161C;
+    --term-panel: #1B1E26;
+    --term-fg: #E7E4DA;
+    --term-fg-dim: #8A8E98;
+    --term-rule: #262B35;
+
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page-bg: #0D0E12;
+      --page-fg: #E7E4DA;
+      --page-fg-dim: #8A8E98;
+      --rule: #23262E;
+      --accent-soft: rgba(217, 164, 65, 0.12);
+    }
+  }
+  :root[data-theme="dark"] {
+    --page-bg: #0D0E12;
+    --page-fg: #E7E4DA;
+    --page-fg-dim: #8A8E98;
+    --rule: #23262E;
+    --accent-soft: rgba(217, 164, 65, 0.12);
+  }
+  :root[data-theme="light"] {
+    --page-bg: #F6F3EC;
+    --page-fg: #1B1B18;
+    --page-fg-dim: #6B665C;
+    --rule: #DDD6C8;
+    --accent-soft: rgba(217, 164, 65, 0.16);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--page-bg);
+    color: var(--page-fg);
+    font-family: var(--font-sans);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6vh 1.25rem;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  #fx {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  .stage {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--page-fg-dim);
+    text-align: center;
+  }
+
+  .terminal {
+    background: var(--term-bg);
+    border-radius: 10px;
+    border: 1px solid var(--term-rule);
+    box-shadow: 0 30px 60px -25px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0,0,0,0.03);
+    overflow: hidden;
+  }
+
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--term-panel);
+    border-bottom: 1px solid var(--term-rule);
+  }
+
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .dot-r { background: #E5645A; }
+  .dot-y { background: #E5B84B; }
+  .dot-g { background: #57B96E; }
+
+  .term-title {
+    margin-left: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--term-fg-dim);
+  }
+
+  .term-body {
+    padding: 1.4rem 1.3rem 1.6rem;
+    font-family: var(--font-mono);
+    color: var(--term-fg);
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .prompt { margin: 0 0 1rem; white-space: pre-wrap; }
+  .prompt-sym { color: var(--success); margin-right: 0.5em; }
+  .cursor {
+    display: inline-block;
+    color: var(--accent);
+    animation: blink 1s steps(1) infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cursor { animation: none; }
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .modules {
+    list-style: none;
+    margin: 0 0 1.1rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .modules li {
+    display: grid;
+    grid-template-columns: 1.3em 6.5em 1fr;
+    align-items: baseline;
+    gap: 0.6em;
+    opacity: 0;
+    transform: translateY(4px);
+    animation: reveal 0.35s ease forwards;
+  }
+
+  .modules li:nth-child(1) { animation-delay: 0.9s; }
+  .modules li:nth-child(2) { animation-delay: 1.3s; }
+  .modules li:nth-child(3) { animation-delay: 1.7s; }
+  .modules li:nth-child(4) { animation-delay: 2.1s; }
+
+  @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modules li { animation: none; opacity: 1; transform: none; }
+    .summary { animation: none !important; opacity: 1 !important; transform: none !important; }
+  }
+
+  .check { color: var(--success); font-weight: 700; }
+  .tool { color: var(--term-fg); font-weight: 600; }
+  .desc { color: var(--term-fg-dim); }
+
+  .summary {
+    border-top: 1px dashed var(--term-rule);
+    padding-top: 1rem;
+    margin-top: 0.2rem;
+    opacity: 0;
+    transform: translateY(6px);
+    animation: reveal 0.4s ease forwards;
+    animation-delay: 2.6s;
+  }
+
+  .summary-head {
+    color: var(--success);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.7rem;
+  }
+
+  .summary-grid {
+    display: flex;
+    gap: 1.6rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .summary-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .num {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .label {
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--term-fg-dim);
+  }
+
+  .summary-note {
+    margin: 0;
+    color: var(--term-fg-dim);
+    font-size: 0.85rem;
+  }
+
+  .stage-foot {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--page-fg-dim);
+  }
+
+  .stage-foot time { font-variant-numeric: tabular-nums; }
+
+  a, button { font: inherit; }
+</style>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<main class="stage">
+  <p class="eyebrow">Trilha de aprendizado — ferramentas de IA para desenvolvimento</p>
+
+  <section class="terminal" aria-label="Resumo de conclusão da trilha">
+    <div class="term-bar">
+      <span class="dot dot-r"></span>
+      <span class="dot dot-y"></span>
+      <span class="dot dot-g"></span>
+      <span class="term-title">zsh — learn --status</span>
+    </div>
+    <div class="term-body">
+      <p class="prompt"><span class="prompt-sym">$</span><span class="typed" id="cmd"></span><span class="cursor">▌</span></p>
+
+      <ul class="modules">
+        <li>
+          <span class="check">✓</span><span class="tool">claude</span>
+          <span class="desc">Raciocínio conversacional e design de prompts</span>
+        </li>
+        <li>
+          <span class="check">✓</span><span class="tool">claude-code</span>
+          <span class="desc">Fluxos de trabalho agentivos no terminal</span>
+        </li>
+        <li>
+          <span class="check">✓</span><span class="tool">cursor</span>
+          <span class="desc">Edição pareada com IA dentro do editor</span>
+        </li>
+        <li>
+          <span class="check">✓</span><span class="tool">github</span>
+          <span class="desc">Controle de versão e revisão colaborativa</span>
+        </li>
+      </ul>
+
+      <div class="summary">
+        <div class="summary-head">BUILD SUCCESSFUL — todos os módulos concluídos</div>
+        <div class="summary-grid">
+          <div><span class="num">4/4</span><span class="label">módulos</span></div>
+          <div><span class="num">100%</span><span class="label">concluído</span></div>
+          <div><span class="num">0</span><span class="label">pendências</span></div>
+        </div>
+        <p class="summary-note">Você concluiu o aprendizado de Claude, Claude Code, Cursor e GitHub.</p>
+      </div>
+    </div>
+  </section>
+
+  <p class="stage-foot">gerado em <time datetime="2026-07-05">05 jul 2026</time></p>
+</main>
+
+<script>
+  (function typewriter() {
+    var el = document.getElementById('cmd');
+    var text = ' learn --status claude claude-code cursor github';
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) { el.textContent = text; return; }
+    var i = 0;
+    (function tick() {
+      if (i <= text.length) {
+        el.textContent = text.slice(0, i);
+        i++;
+        setTimeout(tick, 22);
+      }
+    })();
+  })();
+
+  (function ambientParticles() {
+    var canvas = document.getElementById('fx');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var ctx = canvas.getContext('2d');
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var glyphs = ['+', '*', '|', '·'];
+    var particles = [];
+    var count = 26;
+
+    function resize() {
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function makeParticle() {
+      return {
+        x: Math.random() * window.innerWidth,
+        y: window.innerHeight + Math.random() * 100,
+        speed: 6 + Math.random() * 10,
+        size: 10 + Math.random() * 10,
+        drift: (Math.random() - 0.5) * 0.3,
+        glyph: glyphs[Math.floor(Math.random() * glyphs.length)],
+        hue: Math.random() > 0.5 ? '217,164,65' : '63,148,99',
+        alpha: 0.15 + Math.random() * 0.25
+      };
+    }
+    for (var i = 0; i < count; i++) {
+      var p = makeParticle();
+      p.y = Math.random() * window.innerHeight;
+      particles.push(p);
+    }
+
+    if (reduced) {
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      particles.forEach(function (p) {
+        ctx.font = p.size + 'px ui-monospace, monospace';
+        ctx.fillStyle = 'rgba(' + p.hue + ',' + p.alpha + ')';
+        ctx.fillText(p.glyph, p.x, p.y);
+      });
+      return;
+    }
+
+    function frame() {
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      particles.forEach(function (p) {
+        p.y -= p.speed / 60;
+        p.x += p.drift;
+        if (p.y < -20) Object.assign(p, makeParticle(), { y: window.innerHeight + 20 });
+        ctx.font = p.size + 'px ui-monospace, monospace';
+        ctx.fillStyle = 'rgba(' + p.hue + ',' + p.alpha + ')';
+        ctx.fillText(p.glyph, p.x, p.y);
+      });
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+</script>
